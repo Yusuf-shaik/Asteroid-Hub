@@ -10,9 +10,11 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from poliastro.bodies import Earth, Mars, Sun
-from poliastro.twobody import Orbit
+from poliastro.twobody import Orbit, angles as angles
+
 from flask import Flask, render_template, request
 import os
+import glob
 
 app = Flask(__name__)
 
@@ -26,6 +28,10 @@ def index():
 def getImages():
     startDate = request.form['startDate']
     endDate = request.form['endDate']
+
+    files=glob.glob('static\image\*')
+    for f in files:
+        os.remove(f)
 
     apiKey = "Zdwdmu3XeuOMOrMUHI2bm7auZcWW5fN1V0pCFZBr"
     url = "https://www.neowsapp.com/rest/v1/feed?start_date={}&end_date={}&detailed=true&api_key={}".format(startDate, endDate, apiKey)
@@ -45,6 +51,9 @@ def getImages():
             argp = float(neo["orbital_data"]
                             ["perihelion_argument"]) * u.deg
             nu = float(neo["orbital_data"]["mean_anomaly"]) * u.deg
+            # E = angles.M_to_E(M, ecc)
+            # nu=angles.E_to_nu(E, ecc)
+                       
             print(a, ecc, inc, raan, argp, nu)
 
             orb = Orbit.from_classical(Earth, a, ecc, inc, raan, argp, nu)
@@ -53,7 +62,7 @@ def getImages():
             plt.axis('off')
 
             plt.savefig(fileName, dpi=100)
-            print(fileName)
+            #print(fileName)
 
     images = []
     for picture in os.listdir('static/image'):
