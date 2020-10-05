@@ -11,6 +11,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from poliastro.bodies import Earth, Mars, Sun
 from poliastro.twobody import Orbit, angles as angles
+from poliastro.twobody.angles import M_to_E, E_to_nu
 
 from flask import Flask, render_template, request
 import os
@@ -33,7 +34,7 @@ def getImages():
     for f in files:
         os.remove(f)
 
-    apiKey = "Zdwdmu3XeuOMOrMUHI2bm7auZcWW5fN1V0pCFZBr"
+    apiKey = ""
     url = "https://www.neowsapp.com/rest/v1/feed?start_date={}&end_date={}&detailed=true&api_key={}".format(startDate, endDate, apiKey)
     response = get(url)
     response = response.json()
@@ -43,6 +44,7 @@ def getImages():
             name = neo["name"]
             fileName = "static/image/"+name+".png"
             resource=neo["nasa_jpl_url"]
+
             a = float(neo["orbital_data"]["semi_major_axis"]) * u.AU
             ecc = float(neo["orbital_data"]["eccentricity"]) * u.one
             inc = float(neo["orbital_data"]["inclination"]) * u.deg
@@ -51,10 +53,11 @@ def getImages():
             argp = float(neo["orbital_data"]
                             ["perihelion_argument"]) * u.deg
             nu = float(neo["orbital_data"]["mean_anomaly"]) * u.deg
-            # E = angles.M_to_E(M, ecc)
-            # nu=angles.E_to_nu(E, ecc)
+
+            # E=M_to_E(M, ecc) * u.deg
+            # nu=E_to_nu(E,ecc) * u.deg
                        
-            print(a, ecc, inc, raan, argp, nu)
+            
 
             orb = Orbit.from_classical(Earth, a, ecc, inc, raan, argp, nu)
             orb.plot()
@@ -69,3 +72,11 @@ def getImages():
         images.append('static/image/'+ picture)
 
     return render_template("index.html", done=True, graphs=images, asteroidName=name, link=resource)
+
+
+    # def eccentricAnomalyToTrueAnomaly(E, ecc):
+    #     x=np.sqrt((1+ecc)/(1-ecc))
+    #     nu=2 * np.arctan(x*np.tan(E/2))
+    #     return nu
+
+    # def meanAnomalyToEccentricAnomaly(M, ecc)
